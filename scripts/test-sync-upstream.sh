@@ -181,6 +181,31 @@ test_first_parent_merge_commit_is_applied() {
   assert_file_value "$fork" "upstream-sync" "tracked.txt" "merged-change" "merge commit diff should be applied"
 }
 
+test_previously_synced_commit_is_skipped() {
+  local fixture fork upstream_work out
+  mapfile -t values < <(new_fixture)
+  fixture="${values[0]}"
+  fork="${values[1]}"
+  upstream_work="${values[2]}"
+  out="$fixture/out.txt"
+
+  add_upstream_commit "$upstream_work" "tracked.txt" "upstream-change" "Update tracked file"
+  local upstream_commit
+  upstream_commit="$(git -C "$upstream_work" rev-parse HEAD)"
+
+  printf "upstream-change\n" >"$fork/tracked.txt"
+  git -C "$fork" add tracked.txt
+  git -C "$fork" commit -m "Manual sync\n\n(cherry picked from commit ${upstream_commit})" >/dev/null
+  git -C "$fork" push origin main >/dev/null
+
+  run_sync "$fork" "$fixture/upstream.git" "$out"
+
+  source "$out"
+  assert_eq "false" "$needs_sync" "already-synced upstream commit should not need sync"
+  assert_eq "0" "$applied_commit_count" "already-synced upstream commit should not be re-applied"
+  assert_eq "1" "$skipped_commit_count" "already-synced upstream commit should be skipped"
+}
+
 test_conflict_exits_nonzero() {
   local fixture fork upstream_work
   mapfile -t values < <(new_fixture)
@@ -224,6 +249,7 @@ test_non_ignored_commit_is_applied
 test_ignored_only_commit_is_skipped
 test_mixed_commit_filters_ignored_paths
 test_first_parent_merge_commit_is_applied
+test_previously_synced_commit_is_skipped
 test_conflict_exits_nonzero
 
 printf "All sync-upstream tests passed.\n"
