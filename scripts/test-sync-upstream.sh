@@ -245,11 +245,40 @@ test_conflict_exits_nonzero() {
   fi
 }
 
+test_conflict_only_on_ignored_path_is_handled() {
+  local fixture fork upstream_work out
+  mapfile -t values < <(new_fixture)
+  fixture="${values[0]}"
+  fork="${values[1]}"
+  upstream_work="${values[2]}"
+  out="$fixture/out.txt"
+
+  printf "fork-ignored\n" >"$fork/ignored.txt"
+  git -C "$fork" add ignored.txt
+  git -C "$fork" commit -m "Fork diverges on ignored file" >/dev/null
+  git -C "$fork" push origin main >/dev/null
+
+  printf "upstream-tracked\n" >"$upstream_work/tracked.txt"
+  printf "upstream-ignored\n" >"$upstream_work/ignored.txt"
+  git -C "$upstream_work" add tracked.txt ignored.txt
+  git -C "$upstream_work" commit -m "Upstream changes tracked and ignored" >/dev/null
+  git -C "$upstream_work" push origin main >/dev/null
+
+  run_sync "$fork" "$fixture/upstream.git" "$out"
+
+  source "$out"
+  assert_eq "true" "$needs_sync" "non-ignored portion should still sync"
+  assert_eq "1" "$applied_commit_count" "commit should be applied after ignored conflict resolution"
+  assert_eq "upstream-tracked" "$(git -C "$fork" show upstream-sync:tracked.txt)" "tracked file should come from upstream"
+  assert_eq "fork-ignored" "$(git -C "$fork" show upstream-sync:ignored.txt)" "ignored file should stay from fork"
+}
+
 test_non_ignored_commit_is_applied
 test_ignored_only_commit_is_skipped
 test_mixed_commit_filters_ignored_paths
 test_first_parent_merge_commit_is_applied
 test_previously_synced_commit_is_skipped
 test_conflict_exits_nonzero
+test_conflict_only_on_ignored_path_is_handled
 
 printf "All sync-upstream tests passed.\n"

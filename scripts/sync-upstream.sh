@@ -140,15 +140,17 @@ for commit in "${upstream_commits[@]}"; do
   fi
 
   if ! git cherry-pick "${cherry_pick_args[@]}" "$commit"; then
-    if [[ -z "$(git diff --name-only --diff-filter=U)" ]]; then
+    # Some conflicts are expected on ignored paths (for example README.md).
+    # Reset ignored paths back to HEAD and keep the rest of the cherry-pick.
+    restore_ignored_paths
+
+    if [[ -n "$(git diff --name-only --diff-filter=U)" ]]; then
       git cherry-pick --abort || true
-      skipped_commit_count=$((skipped_commit_count + 1))
-      continue
+      printf "Cherry-pick failed for commit %s\n" "$commit" >&2
+      exit 1
     fi
 
-    git cherry-pick --abort || true
-    printf "Cherry-pick failed for commit %s\n" "$commit" >&2
-    exit 1
+    git cherry-pick --quit || true
   fi
 
   restore_ignored_paths
