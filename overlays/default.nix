@@ -1,22 +1,22 @@
+{ llm-agents }:
 final: prev:
 let
-  lib = import ../lib {
-    # tell sweet little lies to the lib file to avoid touching its contents
+  lib = import (llm-agents + /lib) {
     inputs.nixpkgs.lib = prev.lib;
   };
-  
-  packageNames = builtins.filter (name: builtins.pathExists (../packages + "/${name}/package.nix")) (
-    builtins.attrNames (builtins.readDir ../packages)
+
+  packageNames = builtins.filter (name: builtins.pathExists ((llm-agents + /packages) + "/${name}/package.nix")) (
+    builtins.attrNames (builtins.readDir (llm-agents + /packages))
   );
 
-  npmPackumentSupport = final.callPackage ../lib/fetch-npm-deps.nix { };
-  fetchCargoVendor = final.callPackage ../lib/fetch-cargo-vendor/fetch-cargo-vendor.nix { };
+  npmPackumentSupport = final.callPackage (llm-agents + /lib/fetch-npm-deps.nix) { };
+  fetchCargoVendor = final.callPackage (llm-agents + /lib/fetch-cargo-vendor/fetch-cargo-vendor.nix) { };
 
   callPackage = lib.callPackageWith (
     final
     // {
       inherit lib;
-      flake = { inherit lib; }; # keep the shape of packages.nix, but fail if they try to access unsavory things through flake
+      flake = { inherit lib; };
       pkgs = final;
       inherit fetchCargoVendor;
     }
@@ -24,9 +24,9 @@ let
   );
 
   packageOverrides = {
-    claudebox = callPackage ../packages/claudebox/package.nix {
+    claudebox = callPackage (llm-agents + /packages/claudebox/package.nix) {
       claude-code = final.claude-code;
-      sourceDir = "${callPackage ../packages/claudebox/source.nix { }}/src";
+      sourceDir = "${callPackage (llm-agents + /packages/claudebox/source.nix) { }}/src";
     };
   };
 
@@ -35,7 +35,7 @@ let
     if builtins.hasAttr name packageOverrides then
       packageOverrides.${name}
     else
-      callPackage (../packages + "/${name}/package.nix") { }
+      callPackage ((llm-agents + /packages) + "/${name}/package.nix") { }
   );
 in
 packages
