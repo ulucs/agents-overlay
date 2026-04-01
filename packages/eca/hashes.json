@@ -1,8 +1,0 @@
-{
-  "version": "0.101.0",
-  "x86_64-linux": "sha256-1fSjmMzXLIx6/2CKXP3Gd1TtSvXnfQ8zSwEKIHxXBl0=",
-  "aarch64-linux": "sha256-qtQ8aay5WBgsBmYeyaLJXdF27oXDuIkhpKaagzjYcbg=",
-  "x86_64-darwin": "sha256-9mGEiWpf3zqJ0HesEnBx8AN/wljrDOhT4FF80Ufx214=",
-  "aarch64-darwin": "sha256-mEbKOsjU98lCG2g5FixE8CMJmq+S1BGnK8Xy10lAERc=",
-  "jar": "sha256-zElXTTMQqJRMhFmfPnWAuSuvSgDdOHG6e5269t4oFLs="
-}

@@ -1,9 +1,0 @@
-{
-  "version": "2026.01.28-fd13201",
-  "hashes": {
-    "x86_64-darwin": "sha256-G23LC7Sl1GjfaECndSuyCxHK4drkJKG3B1U2k5SAHJA=",
-    "aarch64-darwin": "sha256-R5kEfd84IaUXuN+PIzpGD1NGPzD6xxM9NAXAAt6d0N8=",
-    "aarch64-linux": "sha256-6oajVZw599vzy2c1olEzoIlqbmfZRK1atb85fiR72y0=",
-    "x86_64-linux": "sha256-Nj6q11iaa++b5stsEu1eBRAYUFRPft84XcHuTCZL5D0="
-  }
-}
